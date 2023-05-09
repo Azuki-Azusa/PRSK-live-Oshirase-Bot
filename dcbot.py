@@ -1,6 +1,6 @@
 import discord
 from discord.ext import tasks
-import datetime
+import time
 from live import Live
 import crawler
 from environs import Env
@@ -22,21 +22,17 @@ lives = []
 async def remindTask():
     global lives
     channel = client.get_channel(CHANNEL_ID)
-    now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M")
-    if now[-2:] != '00':
-        return
-    now = now[:-3]
+    now = time.time() // 60 * 60000
     if env("env") == 'development':
-        now = '2023/03/20 19'
+        now = 1683558000 // 60 * 60000
     for live in lives:
         if live.isMatched(now):
-            await channel.send(live.name + '：ライブの時間だよ！')
+            await channel.send(live.getName() + '：ライブの時間だよ！')
 
-@tasks.loop(hours=24)
+@tasks.loop(hours=8)
 async def updateLives():
     global lives
-    lives = [Live(ele[0], ele[1], ele[2]) for ele in crawler.gerLatestLive()]
-    # print([live.getSchedule() for live in lives])
+    lives = [Live(live) for live in crawler.getLatestLive()]
 
 # 在 Discord Bot 启动时执行的操作
 @client.event
@@ -54,7 +50,7 @@ async def on_message(message):
     if message.channel.id == CHANNEL_ID:
         if message.content.upper().startswith('$SHOW'):
             for live in lives:
-                await message.channel.send(live.name + '\n' + live.getSchedule() + '\n')
+                await message.channel.send(live.getName() + '\n' + live.getSchedule() + '\n')
 
 
 # 启动 Discord Bot

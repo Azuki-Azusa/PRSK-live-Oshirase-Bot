@@ -1,15 +1,11 @@
 import requests
-from bs4 import BeautifulSoup
+import json
+import time
 
-
-# Get latest 3 lives
-def gerLatestLive():
-    url = "https://pjsekai.com/?9513417021"
+def getLatestLive():
+    url = "https://sekai-world.github.io/sekai-master-db-diff/virtualLives.json"
     response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    table = soup.find("table", {"id": "sortable_table1"})
-
-    rows = table.find_all("tr")
-
-    return [(cells[0].text, cells[1].text, cells[3].text) for cells in [row.find_all("td") for row in rows[1:4]]]
+    virtual_lives = json.loads(response.text)
+    current_time = time.time() * 1000
+    current_lives = [live for live in virtual_lives if live['startAt'] < current_time and live['endAt'] > current_time and live['virtualLiveType'] != 'beginner']
+    return current_lives
