@@ -1,6 +1,4 @@
 import datetime
-import crawler
-import time
 
 class Live():
     live = {}
