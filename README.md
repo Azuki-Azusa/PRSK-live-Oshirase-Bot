@@ -24,7 +24,9 @@ pip install -r requirements.txt
 BOT_TOKEN=[BOT_TOKEN]
 CHANNEL_ID=[CHANNEL_ID]
 env=production
+MEMBERS='id1,id2,id3'
 ```
+id is the user id whose want to be mentioned
 
 ## Run the bot
 Run
