@@ -7,7 +7,7 @@ You can change the url in `crawler.py` if you want to use this bot for another s
 
 # How
 ## Environment
-Python3~
+Python3.8~
 
 ## Install required packages
 
