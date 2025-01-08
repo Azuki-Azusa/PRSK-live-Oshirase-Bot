@@ -22,7 +22,8 @@ pip install -r requirements.txt
 - Fill the file like 
 ```
 BOT_TOKEN=[BOT_TOKEN]
-CHANNEL_ID=[CHANNEL_ID]
+CHANNEL_ID_REMIND=[CHANNEL_ID]
+CHANNEL_ID_PRSK=[CHANNEL_ID]
 env=production
 MEMBERS='id1,id2,id3'
 ```

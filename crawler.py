@@ -9,3 +9,10 @@ def getLatestLive():
     current_time = time.time() * 1000
     current_lives = [live for live in virtual_lives if live['startAt'] < current_time and live['endAt'] > current_time and live['virtualLiveType'] != 'beginner']
     return current_lives
+
+def getCurrentEvent():
+    url = "https://sekai-world.github.io/sekai-master-db-diff/events.json"
+    response = requests.get(url)
+    events = json.loads(response.text)
+    current_event = events[-1]
+    return current_event
