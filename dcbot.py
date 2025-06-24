@@ -7,6 +7,7 @@ import crawler
 from environs import Env
 import re
 from participation import Participation
+from rankLogQueue import RankLogQueue
 
 # Load .env文件
 env = Env()
@@ -14,6 +15,8 @@ env.read_env()
 
 CHANNEL_ID_REMIND = int(env("CHANNEL_ID_REMIND"))
 CHANNEL_ID_PRSK = int(env("CHANNEL_ID_PRSK"))
+CHANNEL_ID_RANK = int(env("CHANNEL_ID_RANK"))
+DELAY = int(env("DELAY"))
 
 # Create Bot instance and set authority
 intents = discord.Intents.all()
@@ -23,6 +26,8 @@ client = discord.Client(intents=intents)
 lives = []
 event = {}
 participation = Participation(env("MEMBERS").split(','))
+border_rankings_save_queue = RankLogQueue()
+character_rankings_save_queue = {}
 
 # 每分钟执行一次
 @tasks.loop(minutes=1)
@@ -51,6 +56,17 @@ async def remindTask():
             await channel_prsk.send(str(event.getID()) + ': ' + event.getName() + '：終了' + str(hour) + '時間前！')
             break
 
+@tasks.loop(minutes=DELAY)
+async def updateRank():
+    global border_rankings_save_queue, character_rankings_save_queue, DELAY
+    border_rankings_result, character_rankings_result = crawler.getCurrentRank()
+    border_rankings_save_queue.add(border_rankings_result)
+    for character_id in character_rankings_result:
+        if character_id not in character_rankings_save_queue:
+            character_rankings_save_queue[character_id] = RankLogQueue()
+        character_rankings_save_queue[character_id].add(character_rankings_result[character_id])
+            
+
 @tasks.loop(hours=8)
 async def updateLives():
     global lives, participation
@@ -68,10 +84,11 @@ async def on_ready():
     updateLives.start()
     updateEvent.start()
     remindTask.start()
+    updateRank.start()
 
 @client.event
 async def on_message(message):
-    global lives, event, participation
+    global lives, event, participation, border_rankings_save_queue, character_rankings_save_queue, DELAY
     if message.author == client.user:
         return
     
@@ -86,6 +103,34 @@ async def on_message(message):
         elif match := re.match(r'\$(\d+)$', message.content):
             live_id = int(match.group(1))
             participation.participate(message.author.id, live_id)
+    
+    if message.channel.id == CHANNEL_ID_RANK:
+        if message.content.upper().startswith('RANK_ALL'):
+            await message.channel.send("MAIN: " + str(border_rankings_save_queue.get()[-1]))
+            for rank in character_rankings_save_queue:
+                await message.channel.send(str(rank) + ": " + str(character_rankings_save_queue[rank].get()[-1]))
+
+        elif message.content.upper().startswith('RANK_MAIN'):
+            result = ""
+            speedPerhour = border_rankings_save_queue.getSpeedPerhour()
+            if len(speedPerhour) != 0: 
+                for rank in border_rankings_save_queue.get()[-1]:
+                    result += str(rank) + " NOW:" + str(border_rankings_save_queue.get()[-1][rank]) + "    SPEED: " + str(speedPerhour[rank]) + "\n"
+                await message.channel.send(result)
+            else:
+                await message.channel.send("Data is not enough. Please wait " + str(DELAY) + "min.")
+
+        elif match := re.match(r'RANK\_(\d+)$', message.content):
+            result = ""
+            character_id = int(match.group(1))
+            border_rankings_cha_queue = character_rankings_save_queue[character_id]
+            speedPerhour = border_rankings_cha_queue.getSpeedPerhour()
+            if len(speedPerhour) != 0: 
+                for rank in border_rankings_cha_queue.get()[-1]:
+                    result += str(rank) + " NOW:" + "{:,}".format(int(border_rankings_cha_queue.get()[-1][rank])) + "    SPEED: " + "{:,}".format(int(speedPerhour[rank])) + "\n"
+                await message.channel.send(result)
+            else:
+                await message.channel.send("Data is not enough. Please wait " + str(DELAY) + "min.")
 
 
 
