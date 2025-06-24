@@ -26,7 +26,7 @@ client = discord.Client(intents=intents)
 lives = []
 event = {}
 participation = Participation(env("MEMBERS").split(','))
-border_rankings_save_queue = RankLogQueue()
+border_rankings_save_queue = RankLogQueue(delay=DELAY)
 character_rankings_save_queue = {}
 
 # 每分钟执行一次
@@ -63,7 +63,7 @@ async def updateRank():
     border_rankings_save_queue.add(border_rankings_result)
     for character_id in character_rankings_result:
         if character_id not in character_rankings_save_queue:
-            character_rankings_save_queue[character_id] = RankLogQueue()
+            character_rankings_save_queue[character_id] = RankLogQueue(delay=DELAY)
         character_rankings_save_queue[character_id].add(character_rankings_result[character_id])
             
 

@@ -21,11 +21,21 @@ pip install -r requirements.txt
 - Create a file named `.env`.
 - Fill the file like 
 ```
-BOT_TOKEN=[BOT_TOKEN]
-CHANNEL_ID_REMIND=[CHANNEL_ID]
-CHANNEL_ID_PRSK=[CHANNEL_ID]
+BOT_TOKEN=
+CHANNEL_ID_REMIND=
+CHANNEL_ID_PRSK=
+CHANNEL_ID_RANK=
 env=production
-MEMBERS='id1,id2,id3'
+MEMBERS=
+VIRTUAL_LIVE_API=
+CURRENT_EVENT_API=
+GAME_API_URL=
+GAME_API_PATH=
+GAME_API_RANK_PATH1=
+GAME_API_RANK_PATH2=
+GAME_API_HEADER=
+GAME_API_TOKEN=
+DELAY=
 ```
 id is the user id whose want to be mentioned
 
