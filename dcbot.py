@@ -115,7 +115,7 @@ async def on_message(message):
             speedPerhour = border_rankings_save_queue.getSpeedPerhour()
             if len(speedPerhour) != 0: 
                 for rank in border_rankings_save_queue.get()[-1]:
-                    result += str(rank) + " NOW:" + str(border_rankings_save_queue.get()[-1][rank]) + "    SPEED: " + str(speedPerhour[rank]) + "\n"
+                    result += str(rank) + " NOW:" + "{:,}".format(int(border_rankings_save_queue.get()[-1][rank])) + "    SPEED: " + "{:,}".format(int(speedPerhour[rank])) + "\n"
                 await message.channel.send(result)
             else:
                 await message.channel.send("Data is not enough. Please wait " + str(DELAY) + "min.")
