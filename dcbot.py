@@ -106,7 +106,6 @@ async def on_message(message):
     
     if message.channel.id == CHANNEL_ID_RANK:
         if message.content.upper().startswith('SCORE_ALL'):
-            str = ""
             await message.channel.send("MAIN: " + str(border_rankings_save_queue.get()[-1]))
             for rank in character_rankings_save_queue:
                 await message.channel.send(str(rank) + ": " + str(character_rankings_save_queue[rank].get()[-1]))
