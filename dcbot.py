@@ -93,42 +93,41 @@ async def on_message(message):
         return
     
     if message.channel.id == CHANNEL_ID_REMIND:
-        if message.content.upper().startswith('$SHOW'):
+        if message.content.upper().startswith('SHOW'):
             await message.channel.send('■ Live:\n')
             for live in lives:
                 await message.channel.send(str(live.getID()) + ': ' + live.getName() + '\n' + live.getSchedule() + '\n')
             await message.channel.send('\n■ Event:\n')
             await message.channel.send(str(event.getID()) + ': ' + event.getName() + '\n' + event.getSchedule() + '\n')
 
-        elif match := re.match(r'\$(\d+)$', message.content):
+        elif match := re.match(r'(\d+)$', message.content):
             live_id = int(match.group(1))
             participation.participate(message.author.id, live_id)
     
     if message.channel.id == CHANNEL_ID_RANK:
-        if message.content.upper().startswith('RANK_ALL'):
+        if message.content.upper().startswith('SCORE_ALL'):
+            str = ""
             await message.channel.send("MAIN: " + str(border_rankings_save_queue.get()[-1]))
             for rank in character_rankings_save_queue:
                 await message.channel.send(str(rank) + ": " + str(character_rankings_save_queue[rank].get()[-1]))
 
-        elif message.content.upper().startswith('RANK_MAIN'):
+        elif message.content.upper().startswith('SCORE_MAIN'):
             result = ""
-            speedPerhour = border_rankings_save_queue.getSpeedPerhour()
-            if len(speedPerhour) != 0: 
-                for rank in border_rankings_save_queue.get()[-1]:
-                    result += str(rank) + " NOW:" + "{:,}".format(int(border_rankings_save_queue.get()[-1][rank])) + "    SPEED: " + "{:,}".format(int(speedPerhour[rank])) + "\n"
-                await message.channel.send(result)
+            image_buf = border_rankings_save_queue.getImageOfScore()
+            if image_buf: 
+                file = discord.File(fp=image_buf, filename='table.png')
+                await message.channel.send(file=file)
             else:
                 await message.channel.send("Data is not enough. Please wait " + str(DELAY) + "min.")
 
-        elif match := re.match(r'RANK\_(\d+)$', message.content):
-            result = ""
+        elif match := re.match(r'SCORE\_(\d+)$', message.content):
+            result = [["RANK", "CURRENT", "SPEED"]]
             character_id = int(match.group(1))
             border_rankings_cha_queue = character_rankings_save_queue[character_id]
-            speedPerhour = border_rankings_cha_queue.getSpeedPerhour()
-            if len(speedPerhour) != 0: 
-                for rank in border_rankings_cha_queue.get()[-1]:
-                    result += str(rank) + " NOW:" + "{:,}".format(int(border_rankings_cha_queue.get()[-1][rank])) + "    SPEED: " + "{:,}".format(int(speedPerhour[rank])) + "\n"
-                await message.channel.send(result)
+            image_buf = border_rankings_cha_queue.getImageOfScore()
+            if image_buf: 
+                file = discord.File(fp=image_buf, filename='table.png')
+                await message.channel.send(file=file)
             else:
                 await message.channel.send("Data is not enough. Please wait " + str(DELAY) + "min.")
 
