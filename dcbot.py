@@ -60,13 +60,12 @@ async def remindTask():
 async def updateRank():
     global border_rankings_save_queue, character_rankings_save_queue, DELAY
     border_rankings_result, character_rankings_result = crawler.getCurrentRank()
-    if border_rankings_result:
+    if len(border_rankings_result) > 0:
         border_rankings_save_queue.add(border_rankings_result)
     for character_id in character_rankings_result:
         if character_id not in character_rankings_save_queue:
             character_rankings_save_queue[character_id] = RankLogQueue(delay=DELAY)
         character_rankings_save_queue[character_id].add(character_rankings_result[character_id])
-    print(border_rankings_save_queue.get())
             
 
 @tasks.loop(hours=8)

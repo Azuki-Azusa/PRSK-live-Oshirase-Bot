@@ -42,8 +42,8 @@ def getCurrentRank():
     response = requests.get(url, headers=headers)
     ranking_border = json.loads(response.text)
 
-    border_rankings = ranking_border["borderRankings"] if ranking_border["borderRankings"] else False
-    user_world_bloom_chapter_ranking_borders = ranking_border["userWorldBloomChapterRankingBorders"] if ranking_border["userWorldBloomChapterRankingBorders"] else []
+    border_rankings = ranking_border["borderRankings"] if "borderRankings" in ranking_border else []
+    user_world_bloom_chapter_ranking_borders = ranking_border["userWorldBloomChapterRankingBorders"] if "userWorldBloomChapterRankingBorders" in ranking_border else []
     border_rankings_result = {user["rank"]: user["score"] for user in border_rankings}
     character_rankings_result = {}
     for character in user_world_bloom_chapter_ranking_borders:
