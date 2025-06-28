@@ -33,6 +33,8 @@ character_rankings_save_queue = {}
 @tasks.loop(minutes=1)
 async def remindTask():
     global lives, event
+    if not event or not hasattr(event, 'isMatched'):
+        return  # 或者 print("Event not ready yet.")
     channel_remind = client.get_channel(CHANNEL_ID_REMIND)
     channel_prsk = client.get_channel(CHANNEL_ID_PRSK)
     # 取得当前时间的整分级时间戳
@@ -59,33 +61,48 @@ async def remindTask():
 @tasks.loop(minutes=DELAY)
 async def updateRank():
     global border_rankings_save_queue, character_rankings_save_queue, DELAY
-    border_rankings_result, character_rankings_result = crawler.getCurrentRank()
-    if len(border_rankings_result) > 0:
-        border_rankings_save_queue.add(border_rankings_result)
-    for character_id in character_rankings_result:
-        if character_id not in character_rankings_save_queue:
-            character_rankings_save_queue[character_id] = RankLogQueue(delay=DELAY)
-        character_rankings_save_queue[character_id].add(character_rankings_result[character_id])
-            
+    try:
+        border_rankings_result, character_rankings_result = await crawler.getCurrentRank()
+        if len(border_rankings_result) > 0:
+            border_rankings_save_queue.add(border_rankings_result)
+        for character_id in character_rankings_result:
+            if character_id not in character_rankings_save_queue:
+                character_rankings_save_queue[character_id] = RankLogQueue(delay=DELAY)
+            character_rankings_save_queue[character_id].add(character_rankings_result[character_id])
+    except Exception as e:
+        print(f"[ERROR] updateRank failed: {e}")
 
 @tasks.loop(hours=8)
 async def updateLives():
     global lives, participation
-    lives = [Live(live) for live in crawler.getLatestLive()]
-    participation.update(lives)
+    try:
+        latest = await crawler.getLatestLive()
+        lives = [Live(live) for live in latest]
+        participation.update(lives)
+    except Exception as e:
+        print(f"[ERROR] updateLives failed: {e}")
 
 @tasks.loop(hours=24)
 async def updateEvent():
     global event
-    event = Event(crawler.getCurrentEvent())
+    try:
+        current = await crawler.getCurrentEvent()
+        if current:
+            event = Event(current) 
+    except Exception as e:
+        print(f"[ERROR] updateEvent failed: {e}")
 
 @client.event
 async def on_ready():
     print('Logged in as {0.user}'.format(client))
-    updateLives.start()
-    updateEvent.start()
-    remindTask.start()
-    updateRank.start()
+    if not updateLives.is_running():
+        updateLives.start()
+    if not updateEvent.is_running():
+        updateEvent.start()
+    if not remindTask.is_running():
+        remindTask.start()
+    if not updateRank.is_running():
+        updateRank.start()
 
 @client.event
 async def on_message(message):
