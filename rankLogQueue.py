@@ -17,8 +17,11 @@ class RankLogQueue:
         length = len(self.queue)
         result = {}
         if length > 1:
-            for rank in self.queue[0]:
-                result[rank] = (self.queue[-1][rank] - self.queue[0][rank])/((length-1)*self.delay)*60
+            common_ranks = set(self.queue[0]) & set(self.queue[-1])
+            for rank in common_ranks:
+                delta = self.queue[-1][rank] - self.queue[0][rank]
+                speed = delta / ((length - 1) * self.delay) * 60
+                result[rank] = speed
         return result
 
     def getImageOfScore(self): 
@@ -26,7 +29,18 @@ class RankLogQueue:
         speedPerhour = self.getSpeedPerhour()
         if len(speedPerhour) != 0: 
             for rank in self.queue[-1]:
-                result.append([str(rank),"{:,}".format(int(self.queue[-1][rank])),"{:,}".format(int(speedPerhour[rank]))])
+                if rank in speedPerhour:
+                    result.append([
+                        str(rank),
+                        "{:,}".format(int(self.queue[-1][rank])),
+                        "{:,}".format(int(speedPerhour[rank]))
+                    ])
+                else:
+                    result.append([
+                        str(rank),
+                        "{:,}".format(int(self.queue[-1][rank])),
+                        "N/A"
+                    ])
             fig, ax = plt.subplots()
             ax.axis("off")
             table = ax.table(cellText=result, loc='center', cellLoc='center')
@@ -36,7 +50,6 @@ class RankLogQueue:
             buf = io.BytesIO()
             plt.savefig(buf, format='png', bbox_inches='tight')
             buf.seek(0)
-
             return buf
         else:
             return False

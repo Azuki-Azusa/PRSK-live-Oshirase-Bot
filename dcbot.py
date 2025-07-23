@@ -107,47 +107,50 @@ async def on_ready():
 @client.event
 async def on_message(message):
     global lives, event, participation, border_rankings_save_queue, character_rankings_save_queue, DELAY
-    if message.author == client.user:
-        return
-    
-    if message.channel.id == CHANNEL_ID_REMIND:
-        if message.content.upper().startswith('SHOW'):
-            await message.channel.send('■ Live:\n')
-            for live in lives:
-                await message.channel.send(str(live.getID()) + ': ' + live.getName() + '\n' + live.getSchedule() + '\n')
-            await message.channel.send('\n■ Event:\n')
-            await message.channel.send(str(event.getID()) + ': ' + event.getName() + '\n' + event.getSchedule() + '\n')
+    try:
+        if message.author == client.user:
+            return
+        
+        if message.channel.id == CHANNEL_ID_REMIND:
+            if message.content.upper().startswith('SHOW'):
+                await message.channel.send('■ Live:\n')
+                for live in lives:
+                    await message.channel.send(str(live.getID()) + ': ' + live.getName() + '\n' + live.getSchedule() + '\n')
+                await message.channel.send('\n■ Event:\n')
+                await message.channel.send(str(event.getID()) + ': ' + event.getName() + '\n' + event.getSchedule() + '\n')
 
-        elif match := re.match(r'(\d+)$', message.content):
-            live_id = int(match.group(1))
-            participation.participate(message.author.id, live_id)
-    
-    if message.channel.id == CHANNEL_ID_RANK:
-        if message.content.upper().startswith('SCORE_ALL'):
-            await message.channel.send("MAIN: " + str(border_rankings_save_queue.get()[-1]))
-            for rank in character_rankings_save_queue:
-                await message.channel.send(str(rank) + ": " + str(character_rankings_save_queue[rank].get()[-1]))
+            elif match := re.match(r'(\d+)$', message.content):
+                live_id = int(match.group(1))
+                participation.participate(message.author.id, live_id)
+        
+        if message.channel.id == CHANNEL_ID_RANK:
+            if message.content.upper().startswith('SCORE_ALL'):
+                await message.channel.send("MAIN: " + str(border_rankings_save_queue.get()[-1]))
+                for rank in character_rankings_save_queue:
+                    await message.channel.send(str(rank) + ": " + str(character_rankings_save_queue[rank].get()[-1]))
 
-        elif message.content.upper().startswith('SCORE_MAIN'):
-            image_buf = border_rankings_save_queue.getImageOfScore()
-            if image_buf: 
-                file = discord.File(fp=image_buf, filename='table.png')
-                await message.channel.send(file=file)
-            else:
-                await message.channel.send("Data is not enough. Please wait " + str(DELAY) + "min.")
-
-        elif match := re.match(r'SCORE\_(\d+)$', message.content):
-            character_id = int(match.group(1))
-            if character_id in character_rankings_save_queue:
-                border_rankings_cha_queue = character_rankings_save_queue[character_id]
-                image_buf = border_rankings_cha_queue.getImageOfScore()
+            elif message.content.upper().startswith('SCORE_MAIN'):
+                image_buf = border_rankings_save_queue.getImageOfScore()
                 if image_buf: 
                     file = discord.File(fp=image_buf, filename='table.png')
                     await message.channel.send(file=file)
                 else:
                     await message.channel.send("Data is not enough. Please wait " + str(DELAY) + "min.")
-            else:
-                await message.channel.send("Unknown Character ID")
+
+            elif match := re.match(r'SCORE\_(\d+)$', message.content):
+                character_id = int(match.group(1))
+                if character_id in character_rankings_save_queue:
+                    border_rankings_cha_queue = character_rankings_save_queue[character_id]
+                    image_buf = border_rankings_cha_queue.getImageOfScore()
+                    if image_buf: 
+                        file = discord.File(fp=image_buf, filename='table.png')
+                        await message.channel.send(file=file)
+                    else:
+                        await message.channel.send("Data is not enough. Please wait " + str(DELAY) + "min.")
+                else:
+                    await message.channel.send("Unknown Character ID")
+    except Exception  as e:
+        await message.channel.send(str(e))
 
 
 
