@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: .
+    image: prsk-bot:local
+    container_name: prsk-bot
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python dcbot.py
+    restart: unless-stopped

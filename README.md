@@ -44,3 +44,41 @@ Run
 ```shell
 python .\dcbot.py
 ```
+
+## Run tests
+
+Run:
+```shell
+python -m unittest discover -s tests -v
+```
+## Docker on NAS
+
+Build and start the bot:
+
+```shell
+docker compose build
+docker compose up -d
+```
+
+Or use Makefile shortcuts:
+
+```shell
+make build
+make up
+make logs
+make down
+```
+
+## Environment files
+
+Use `.env` for the running container. `.env.example` documents the required keys without secrets.
+
+`APP_ENV` is the preferred environment mode key. The old `env` key is still supported for compatibility.
+
+## Project structure
+
+- `config.py`: loads and validates environment configuration.
+- `crawler.py`: Project Sekai API client plus compatibility wrapper functions.
+- `dcbot.py`: Discord bot wiring, scheduled tasks, and command handling.
+- `event.py`, `live.py`, `participation.py`, `rankLogQueue.py`: small domain objects.
+- `tests/`: unit tests that do not require Discord or live network access.
